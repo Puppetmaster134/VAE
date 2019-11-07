@@ -32,24 +32,48 @@ MODEL_NAME = "VAE.ckpt"
 torch.manual_seed(args.seed)
 
 # Set up our training and testing sets (MNIST)
+# 60000 elements
 train_loader = torch.utils.data.DataLoader(
     datasets.MNIST('../data', train=True, download=True,
                    transform=transforms.ToTensor()),
     batch_size=args.batch_size, shuffle=True, **kwargs)
 	
-test_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data', train=False, transform=transforms.ToTensor()),
-    batch_size=args.batch_size, shuffle=True, **kwargs)
-	
-
 # Initialize our model
-model = VAE(MODEL_STORE_PATH, MODEL_NAME)
+model = VAE(20).to(device)
 
-if (args.train):
-	model.train(train_loader)
-else:
-	model.attempt_load()
-	
+# Setup Adam optimizer
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
+
+total_loss = 0
+num_epochs = 200
+ce = 0
+kld = 0
+
+for epoch in range(0,num_epochs):
+    if __name__ == '__main__':
+        for batch_idx, (data, _) in enumerate(train_loader):
+            data = data.to(device)
+            optimizer.zero_grad()
+            x_prime, x, mean, variance = model(data)
+            cross_entropy_loss, kl_divergence_loss = model.loss_function(x_prime,x,mean,variance)
+            
+            
+            loss = cross_entropy_loss + kl_divergence_loss
+            loss.backward()
+            total_loss += loss.item()
+            optimizer.step()
+            
+            
+            if batch_idx % args.log_interval == 0:
+                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                epoch, batch_idx * len(data), len(train_loader.dataset),
+                100. * batch_idx / len(train_loader),
+                loss.item() / len(data)))
+            
+        #print(ce)
+    #print('tl', total_loss)
+
+torch.save(model.state_dict(), f'{MODEL_STORE_PATH}/{MODEL_NAME}')
 	
 	
 	
