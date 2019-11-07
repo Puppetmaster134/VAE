@@ -45,14 +45,6 @@ class VAE(nn.Module):
 
 		z = mean + epsilon * std_dev
 
-		testcity = torch.zeros(20).to(std_dev.device)
-		#idx = np.random.randint(0,20)
-		idx = 0
-
-		print('Boosted Feature:',idx)
-		testcity[idx] = 12
-		testcity = testcity * std_dev
-		z = z + testcity
 		return z
 
 	def decode(self, z):
