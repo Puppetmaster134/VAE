@@ -101,9 +101,11 @@ class VAE(nn.Module):
 		return BCE, KLD
 	
 	#Given some parameters, calculate the number of features returned by a ConvLayer
+	#http://cs231n.github.io/convolutional-networks/
 	def calculate_conv_output(self, input_width, kernel_width, stride = 1, padding_size = 0):
 		return ((input_width + (2 * padding_size) - kernel_width) / stride) + 1
 	
 	#Given some parameters, calculate the number of features returned by a Pooling Layer
+	#http://cs231n.github.io/convolutional-networks/
 	def calculate_pool_output(self, input_width, kernel_width, stride = 1):
 		return ((input_width - kernel_width) / stride) + 1

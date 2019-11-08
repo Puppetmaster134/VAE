@@ -8,6 +8,7 @@ from torchvision import datasets, transforms
 from torchvision.utils import save_image
 
 from vae import VAE
+import dataset_utility as dutil
 
 
 parser = argparse.ArgumentParser(description='VAE MNIST Example')
@@ -17,6 +18,7 @@ parser.add_argument('--epochs', type=int, default=10, metavar='N',help='number o
 parser.add_argument('--no-cuda', action='store_true', default=False,help='enables CUDA training')
 parser.add_argument('--seed', type=int, default=1, metavar='S',help='random seed (default: 1)')
 parser.add_argument('--log-interval', type=int, default=10, metavar='N',help='how many batches to wait before logging training status')
+parser.add_argument('--dataset', default=None,help='Path to dataset to load')
 args = parser.parse_args()
 
 # Set up CUDA if it's not disabled via argument
@@ -29,19 +31,18 @@ MODEL_NAME = f"{args.model}.ckpt"
 
 torch.manual_seed(args.seed)
 
-# Set up our training and testing sets (MNIST)
-# 60000 elements
+#Load our dataset
+train_dataset = dutil.byPath(args.dataset) if args.dataset else dutil.MNIST()
 
-train_dataset = datasets.MNIST('../data', train=True, download=True, transform=transforms.ToTensor())
+#Set up our data and parameters
 train_loader = torch.utils.data.DataLoader(train_dataset,batch_size=args.batch_size, shuffle=True, **kwargs)
-    
 num_items = train_dataset.data.size(0)
 image_height = train_dataset.data.size(1)
 image_width = train_dataset.data.size(2)
 latent_features = 20
 
 
-# Initialize our model
+#Initialize the VAE
 model = VAE(latent_features, image_height, image_width).to(device)
 
 
