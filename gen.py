@@ -31,14 +31,14 @@ MODEL_NAME = f"{args.model}.ckpt"
 torch.manual_seed(args.seed)
 
 #Load our dataset
-train_dataset = dutil.byPath(args.dataset) if args.dataset else dutil.MNIST(False)
+train_dataset,img_width = dutil.byPath(args.dataset) if args.dataset else dutil.MNIST(False)
 
 #Set up our data and parameters
 train_loader = torch.utils.data.DataLoader(train_dataset,batch_size=1, shuffle=True, **kwargs)
-num_items = train_dataset.data.size(0)
-image_height = train_dataset.data.size(1)
-image_width = train_dataset.data.size(2)
-latent_features = 20
+num_items = len(train_dataset)
+image_height = img_width
+image_width = img_width
+latent_features = 10
 
 
 #Initialize the VAE
@@ -53,7 +53,7 @@ some_image = model.decode(randoms)
 
 plt.figure(1)
 plt.title("Generated Image")
-image_vector = some_image.view(-1,28,28).permute(1, 2, 0).cpu().squeeze()
+image_vector = some_image.view(-1,48,48).permute(1, 2, 0).cpu().squeeze()
 fig2 = plt.imshow(image_vector.detach().numpy())
 
 plt.show()

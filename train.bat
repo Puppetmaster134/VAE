@@ -1,0 +1,1 @@
+python train.py --model="mnist1" --epochs=10

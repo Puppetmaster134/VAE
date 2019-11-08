@@ -12,25 +12,25 @@ class VAE(nn.Module):
 
 		#Number of input/output features
 		self.output_features = image_height * image_width
-		
+
 		#Number of channels ConvNet will extract features with
-		self.conv_channels = 3
-		
+		self.conv_channels = 1
+
 		#The size of z (encoded variables)
 		self.hidden_size = hidden_size
-		
+
 		#First Convolutional Layer Parameters
 		self.conv1_size = 4
 		self.conv1_stride = 1
 		self.pool1_size = 2
 		self.pool1_stride = 2
-		
+
 		#Second Convolutional Layer Parameters
 		self.conv2_size = 2
 		self.conv2_stride = 1
 		self.pool2_size = 2
-		self.pool2_stride = 1
-		
+		self.pool2_stride = 2
+
 		#Calculating the number of features extracted from our convolutional sequence
 		conv1_output_size = self.calculate_conv_output(image_height,self.conv1_size, self.conv1_stride)
 		pool1_output_size = self.calculate_pool_output(conv1_output_size, self.pool1_size, self.pool1_stride)
@@ -42,7 +42,7 @@ class VAE(nn.Module):
 		#Sequential Layer with the Convolutional Layers inside
 		self.conv = nn.Sequential(
 			nn.Conv2d(
-				in_channels=1,
+				in_channels=self.conv_channels,
 				out_channels=self.conv_channels,
 				kernel_size=(self.conv1_size, self.conv1_size),
 				stride=self.conv1_stride),
@@ -56,12 +56,12 @@ class VAE(nn.Module):
 			nn.ReLU(True),
 			nn.MaxPool2d(self.pool2_size,stride=self.pool2_stride)
 		)
-		
+
 		self.encoder_fc1 = nn.Linear(self.conv_features,self.hidden_size)
 		self.encoder_fc2 = nn.Linear(self.conv_features,self.hidden_size)
 
 		self.decode_fc1 = nn.Linear(self.hidden_size,self.conv_features)
-		self.decode_fc2 = nn.Linear(self.conv_features,self.output_features)
+		self.decode_fc2 = nn.Linear(self.conv_features,self.output_features * self.conv_channels)
 
 	def encode(self,input):
 		h = self.conv(input).view(-1,self.conv_features)
@@ -89,22 +89,22 @@ class VAE(nn.Module):
 
 		return x_prime, input, mean, variance
 
-	
-	def loss_function(self,recon_x, x, mu, logvar):		
+
+	def loss_function(self,recon_x, x, mu, logvar):
 		#Binary Cross Entropy loss function
-		BCE = F.binary_cross_entropy(recon_x, x.view(-1, self.output_features), reduction='sum')
-		
+		BCE = F.binary_cross_entropy(recon_x, x.view(-1, self.output_features * self.conv_channels), reduction='sum')
+
 		#Kullback-Leibler (KL) Divergence loss function
 		#Calculates the loss between our encoded distribution and the Normal distribution
 		KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
 		return BCE, KLD
-	
+
 	#Given some parameters, calculate the number of features returned by a ConvLayer
 	#http://cs231n.github.io/convolutional-networks/
 	def calculate_conv_output(self, input_width, kernel_width, stride = 1, padding_size = 0):
 		return ((input_width + (2 * padding_size) - kernel_width) / stride) + 1
-	
+
 	#Given some parameters, calculate the number of features returned by a Pooling Layer
 	#http://cs231n.github.io/convolutional-networks/
 	def calculate_pool_output(self, input_width, kernel_width, stride = 1):

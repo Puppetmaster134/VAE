@@ -1,0 +1,1 @@
+python gen.py --model="Cats2" --dataset="C:\Users\Brian\Documents\Projects\vae\data"
